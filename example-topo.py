@@ -73,6 +73,12 @@ class MyTopo( Topo):
         switch66 = self.addSwitch('s66')
 
         #laczenie warst
+        self.addLink(switch12, switch22)
+        self.addLink(switch13, switch23)
+        self.addLink(switch14, switch24)
+        self.addLink(switch15, switch25)
+        self.addLink(switch16, switch26)
+        
         self.addLink(switch23, switch33)
         self.addLink(switch24, switch34)
         self.addLink(switch25, switch35)
