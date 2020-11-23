@@ -26,7 +26,7 @@ class MyTopo( Topo):
         self.addLink(host2, switch1)
 
         #ostatni switch
-        switch6 = self.addSwitch('s4')
+        switch4 = self.addSwitch('s4')
         self.addLink(host3,switch4)
         self.addLink(host4,switch4)
 
