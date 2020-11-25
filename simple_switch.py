@@ -16,8 +16,6 @@
 """
 An OpenFlow 1.0 L2 learning switch implementation.
 """
-
-
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER
