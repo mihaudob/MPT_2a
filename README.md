@@ -10,13 +10,13 @@ Projekt sieci z kontrolerem która będzie posiadała Firewall przed atakiem DHC
 1. Pobierz RYU ```sudo pip3 install ryu```
 
 ## Uruchamianie
-
-1. W folderze projektu uruchom:
+1. Idź do folderu projektu.
+2. W jednym terminalu uruchom topologię ze zdalnym kontrolerem.
 ```
 sudo mn --custom example-topo.py --topo mytopo --mac --controller remote --switch ovsk
 ```
 
-2. Uruchamiamy RYU
+3. W kolejnym terminalu uruchom kontroler RYU.
 
 ```
 ryu-manager $PWD/simple_switch.py
