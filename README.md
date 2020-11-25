@@ -18,19 +18,19 @@ Plik ten pochodzi z ```/ryu/ryu/app```. Mozemy utworzyc nasz kontroler na jego p
 Import jest z oficjalnej dystrubucji ```ryu``` wiec jesli chcemy to calkowicie usamodzielnic potrzeba wielu zmian ktore uwazam za niepotrzebne.
 
 ## Uruchamianie
-
-1. W folderze projektu uruchom:
+1. Idź do folderu projektu.
+2. W jednym terminalu uruchom topologię ze zdalnym kontrolerem.
 ```
 sudo mn --custom example-topo.py --topo mytopo --mac --controller remote --switch ovsk
 ```
 
-2. Uruchamiamy RYU
+3. W kolejnym terminalu uruchom kontroler RYU.
 
 ```
 ryu-manager $PWD/simple_switch.py
 ```
 
-## Zrodla
+## Żródła
 - Instrukcja do laboratorium 1. Zapoznanie ze środowiskiem Mininet.
 - https://ernie55ernie.github.io/sdn/2019/03/25/install-mininet-and-ryu-controller.html
 - https://github.com/faucetsdn/ryu/blob/master/ryu/app/simple_switch.py
