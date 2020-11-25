@@ -11,11 +11,11 @@ Projekt sieci z kontrolerem która będzie posiadała Firewall przed atakiem DHC
 
 ## Kontroler
 
-Kod zrodlowy kontrolera znajduje sie w folderze /ryu.
-Korzystamy z pliku ```simple_switch.py``` ktory ma prosty mechanizm floodowania i narazie nie dziala.
+Kod źródłowy kontrolera znajduje się w folderze /ryu.
+Korzystamy z pliku ```simple_switch.py``` który ma prosty mechanizm floodowania i narazie nie dziala.
 
-Plik ten pochodzi z ```/ryu/ryu/app```. Mozemy utworzyc nasz kontroler na jego podstawie.
-Import jest z oficjalnej dystrubucji ```ryu``` wiec jesli chcemy to calkowicie usamodzielnic potrzeba wielu zmian ktore uwazam za niepotrzebne.
+Plik ten pochodzi z ```/ryu/ryu/app```. Mozemy utworzyć nasz kontroler na jego podstawie.
+Import jest z oficjalnej dystrubucji ```ryu``` wiec jeśli chcemy to całkowicie usamodzielnic potrzeba wielu zmian ktore uwazam za niepotrzebne.
 
 ## Uruchamianie
 1. Idź do folderu projektu.
