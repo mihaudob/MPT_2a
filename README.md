@@ -22,7 +22,7 @@ sudo mn --custom example-topo.py --topo mytopo --mac --controller remote --switc
 ryu-manager $PWD/simple_switch.py
 ```
 
-## Zrodla
+## Żródła
 - Instrukcja do laboratorium 1. Zapoznanie ze środowiskiem Mininet.
 - https://ernie55ernie.github.io/sdn/2019/03/25/install-mininet-and-ryu-controller.html
 - https://github.com/faucetsdn/ryu/blob/master/ryu/app/simple_switch.py
