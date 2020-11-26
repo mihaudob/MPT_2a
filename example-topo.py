@@ -16,11 +16,12 @@ class MyTopo( Topo):
         Topo.__init__(self)
         
         #deklaracja 4 hostów
-        host1 = self.addHost('h1')
-        host2 = self.addHost('h2')
+        host1 = self.addHost('h1') #source of traffic 1
+        host2 = self.addHost('h2') #source of traffic 2
 
-        host3 = self.addHost('h3')
-        host4 = self.addHost('h4')
+        host3 = self.addHost('h3') #DHCP Server
+        host4 = self.addHost('h4') #DHCP Client
+        host5 = self.addHost('h5') #attacker
 
         #pierwszy switch
         switch1 = self.addSwitch('s1')
@@ -31,13 +32,13 @@ class MyTopo( Topo):
         switch4 = self.addSwitch('s4')
         self.addLink(host3,switch4)
         self.addLink(host4,switch4)
+        self.addLink(host5,switch4)
 
         #pierwsza warstwa switchy
         switch11 = self.addSwitch('s11')
         switch12 = self.addSwitch('s12')
         switch13 = self.addSwitch('s13')
         switch14 = self.addSwitch('s14')
-
 
         #polaczenie pierwszej warstwy ze switchem1
         self.addLink(switch1, switch11)
@@ -67,7 +68,7 @@ class MyTopo( Topo):
 
         self.addLink(switch34, switch44)
 
-        #podlaczenie switcha6 ze switchami
+        #podlaczenie switcha4 ze switchami
         self.addLink(switch4, switch11)
         self.addLink(switch4, switch22)
         self.addLink(switch4, switch33)
