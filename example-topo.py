@@ -26,8 +26,8 @@ class MyTopo( Topo):
         #serwer DHCP na h3
 
         print("*** Start DHCP server on h3 ...")
-        h3.cmd('sudo apt-get update')
-        h3.cmd('echo "interfaces=\\"h3-eth0\\"" >> /etc/default/isc-dhcp-server')
+        host3.cmd('sudo apt-get update')
+        host3.cmd('echo "interfaces=\\"h3-eth0\\"" >> /etc/default/isc-dhcp-server')
 
         dhcp_config = """
           subnet 192.168.16.0 netmask 255.255.255.0 {
@@ -36,8 +36,8 @@ class MyTopo( Topo):
           }
         """
 
-        h3.cmd('echo "%s" >> /etc/dhcp/dhcpd.conf' % dhcp_config)
-        h3.cmd("service isc-dhcp-server restart &")
+        host3.cmd('echo "%s" >> /etc/dhcp/dhcpd.conf' % dhcp_config)
+        host3.cmd("service isc-dhcp-server restart &")
         
         #klient dhcp na h4
 
