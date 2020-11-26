@@ -23,6 +23,25 @@ class MyTopo( Topo):
         host4 = self.addHost('h4') #DHCP Client
         host5 = self.addHost('h5') #attacker
 
+        #serwer DHCP na h3
+
+        print("*** Start DHCP server on h3 ...")
+        h3.cmd('sudo apt-get update')
+        h3.cmd('echo "interfaces=\\"h3-eth0\\"" >> /etc/default/isc-dhcp-server')
+
+        dhcp_config = """
+          subnet 192.168.16.0 netmask 255.255.255.0 {
+            range 192.168.16.20 192.168.16.254;
+            interface h3-eth0;
+          }
+        """
+
+        h3.cmd('echo "%s" >> /etc/dhcp/dhcpd.conf' % dhcp_config)
+        h3.cmd("service isc-dhcp-server restart &")
+        
+        #klient dhcp na h4
+
+
         #pierwszy switch
         switch1 = self.addSwitch('s1')
         self.addLink(host1, switch1)
