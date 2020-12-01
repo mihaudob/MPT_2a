@@ -31,7 +31,11 @@ class MyTopo( Topo):
         switch1 = self.addSwitch('s1')
         self.addLink(host1, switch1)
         self.addLink(host2, switch1)
+        self.addLink(host3, switch1)
+        self.addLink(host4, switch1)
+        self.addLink(host5, switch1)
 
+'''
         #ostatni switch
         switch4 = self.addSwitch('s4')
         self.addLink(host3,switch4)
@@ -77,6 +81,7 @@ class MyTopo( Topo):
         self.addLink(switch4, switch22)
         self.addLink(switch4, switch33)
         self.addLink(switch4, switch44)
+'''
 
 def runTopo(controller_ip):
 

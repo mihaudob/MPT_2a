@@ -8,6 +8,7 @@ Projekt sieci z kontrolerem która będzie posiadała Firewall przed atakiem DHC
 1. Sklonuj GITa
 1. Zainstaluj pip ```sudo apt install python3-pip```
 1. Pobierz RYU ```sudo pip3 install ryu```
+1. Pobierz dhcp server ```sudo apt-get install service isc-dhcp-server ```
 
 ## Kontroler
 
