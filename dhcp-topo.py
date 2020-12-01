@@ -106,6 +106,7 @@ def runTopo(controller_ip):
   #host3.cmd('sudo apt-get update')
   #host3.cmd('echo "interfaces=\\"h3-eth0\\"" > /etc/default/isc-dhcp-server')
 
+  dhcp_config = """subnet 10.0.0.0 netmask 255.255.255.0 {
     interface h3-eth0;
     range 10.0.0.100 10.0.0.150;
     option subnet-mask 255.255.255.0;
