@@ -1,0 +1,24 @@
+CHANGES
+=======
+
+* naprawianko
+* small corrections
+* new advanced topology
+* dhcp client
+* server dhcp
+* adding dhcp server
+* adding attack
+* adding hosts
+* adding dhcp starve attack script
+* Update README.md
+* Dodanie RYU
+* Update README.md
+* Create .gitignore
+* Update README.md
+* Opis oraz podstawowy kontroler zamontowany
+* Update README.md
+* Create README.md
+* making small adjustments
+* usunięcie warstw
+* dodanie linkow
+* adding mininet topology configuration

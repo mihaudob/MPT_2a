@@ -98,7 +98,11 @@ def runTopo(controller_ip):
   #serwer DHCP na h3
   
   print("*** Start DHCP server on h3 ...")
+<<<<<<< HEAD
   #host3.cmd('sudo apt-get update')
+=======
+  #host3.cmd('sudo apt-get update') to jest wewnętrzna sieć - nie ma net'a
+>>>>>>> e17015ccf189c750673b45c93767208c52252290
   host3.cmd('echo "interfaces=\\"h3-eth0\\"" >> /etc/default/isc-dhcp-server')
 
   dhcp_config = """
