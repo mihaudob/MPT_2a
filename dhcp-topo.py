@@ -104,21 +104,23 @@ def runTopo(controller_ip):
   
   print("*** Start DHCP server on h3 ...")
   #host3.cmd('sudo apt-get update')
-  host3.cmd('echo "interfaces=\\"h3-eth0\\"" >> /etc/default/isc-dhcp-server')
+  #host3.cmd('echo "interfaces=\\"h3-eth0\\"" > /etc/default/isc-dhcp-server')
 
-  dhcp_config = """
-    subnet 192.168.16.0 netmask 255.255.255.0 {
-      range 192.168.16.20 192.168.16.254;
-      interface h3-eth0;
-    }"""
+    interface h3-eth0;
+    range 10.0.0.100 10.0.0.150;
+    option subnet-mask 255.255.255.0;
+    default-lease-time 6200;
+    max-lease-time 70000;
+}"""
   
 
-  host3.cmd('echo "%s" >> /etc/dhcp/dhcpd.conf' % dhcp_config)
+  host3.cmd('echo "%s" > /etc/dhcp/dhcpd.conf' % dhcp_config)
   host3.cmd("service isc-dhcp-server restart &")
   
   #klient dhcp na h4
-  #host4.cmd("ifconfig h4-eth0 0")
+  host4.cmd("ifconfig h4-eth0 0")
   #host4.cmd("dhclient h4-eth0")
+  
   CLI(net)
   net.stop()
 
