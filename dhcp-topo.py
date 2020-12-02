@@ -4,7 +4,8 @@ from mininet.topo import Topo
 from mininet.cli import CLI
 from mininet.net import Mininet
 from mininet.node import DefaultController, RemoteController, OVSSwitch
-
+from mininet.link import Intf
+from mininet.log import setLogLevel, info
 
 """
 Topologia
@@ -23,7 +24,7 @@ class MyTopo( Topo):
         host1 = self.addHost('h1') #source of traffic 1
         host2 = self.addHost('h2') #source of traffic 2
 
-        host3 = self.addHost('h3') #DHCP Server
+        host3 = self.addHost('h3',ip='10.0.0.50', inNamespace=False) #DHCP Server
         host4 = self.addHost('h4') #DHCP Client
         host5 = self.addHost('h5') #attacker
 
@@ -127,7 +128,7 @@ def runTopo(controller_ip):
 
 if __name__ == '__main__':
     # This runs if this file is executed directly
-    #setLogLevel( 'info' )
+    setLogLevel( 'info' )
     #logging.info("Controller IP {}".format(sys.argv[1]))
     runTopo(sys.argv[1])
            
