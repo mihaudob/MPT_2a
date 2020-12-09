@@ -1,0 +1,20 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Opis ataku\
+\
+Prezentowany atak sk\uc0\u322 ada si\u281  z dw\'f3ch cz\u281 \u347 ci:\
+- Atak DHCP starvation\
+- Atak DHCP spoofing\
+Dzia\uc0\u322 aj\u261  one jeden po drugim, blokuj\u261 c us\u322 ug\u281  DHCP na serwerze w sieci i tworz\u261 c nowy, fa\u322 szywy.\
+\
+Atak DHCP starvation:\
+Atak typu Denial of Service (DoS). Polega na \'93wyg\uc0\u322 odzeniu\'94 serwera DHCP, czyli wykorzystaniu wszystkich dost\u281 pnych adres\'f3w IP, kt\'f3re serwer oferuje.\
+Atakuj\uc0\u261 cy wysy\u322 a w formie broadcast wiadomo\u347 ci DHCP Request z fa\u322 szywymi adresami MAC urz\u261 dze\u324 . Takie zapytania trafiaj\u261  do serwera DHCP znajduj\u261 cego si\u281  w sieci. Po wys\u322 aniu odpowiednio du\u380 ej liczby zapyta\u324  - w zale\u380 no\u347 ci od puli dost\u281 pnych adres\'f3w na serwerze DHCP - nast\u281 puje wyczerpanie dost\u281 pnych adres\'f3w i serwer nie mo\u380 e ju\u380  \u347 wiadczy\u263  us\u322 ug DHCP dla prawdziwych u\u380 ytkownik\'f3w sieci.\
+\
+Atak DHCP spoofing:\
+Polega na podszyciu si\uc0\u281  hosta w sieci pod serwer DHCP. Atakuj\u261 cy odpowiada na zapytania DHCP Request  wiadomo\u347 ciami DHCP ACK i \u347 wiadczy us\u322 ug\u281  DHCP. Dodatkowo atakuj\u261 cy mo\u380 e rozg\u322 asza\u263  sw\'f3j adres jako bram\u281  domy\u347 ln\u261  (DHCP Option 3) lub serwer DNS (DHCP Option 6). Pozwala to atakuj\u261 cemu na przechwytywanie ca\u322 ego ruchu wychodz\u261 cego z sieci, a tak\u380 e rozwi\u261 zywanie zapyta\u324  DNS. Dzi\u281 ki takiej konfiguracji atakuj\u261 cy mo\u380 e przeprowadza\u263  ataki Man in the Middle i przechwytywa\u263  dane wysy\u322 ane przez u\u380 ytkownik\'f3w sieci.}
