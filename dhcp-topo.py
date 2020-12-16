@@ -123,21 +123,6 @@ def runTopo(controller_ip):
   host4.cmd("ifconfig h4-eth0 0")
   #host4.cmd("dhclient h4-eth0")
   
-
-  #konfiguracja dhcp na h5 atakujacym
- dhcp_config1 = """subnet 10.0.0.0 netmask 255.255.255.0 {
-    interface h5-eth0;
-    range 10.0.0.150 10.0.0.200;
-    option subnet-mask 255.255.255.0;
-    default-lease-time 6200;
-    max-lease-time 70000;
-}"""
-
-  host5.cmd('echo "%s" > /etc/dhcp/dhcpd.conf' % dhcp_config1)
-  host3.cmd('echo "interfaces=\\"h5-eth0\\"" > /etc/default/isc-dhcp-server')
-
-  #host5.cmd("service isc-dhcp-server restart &")
-  
   CLI(net)
   net.stop()
 
