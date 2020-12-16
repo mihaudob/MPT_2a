@@ -26,7 +26,7 @@ class MyTopo( Topo):
 
         host3 = self.addHost('h3',ip='10.0.0.50', inNamespace=False) #DHCP Server
         host4 = self.addHost('h4') #DHCP Client
-        host5 = self.addHost('h5') #attacker
+        host5 = self.addHost('h5',ip='10.0.0.51', inNamespace=False) #attacker
 
         #pierwszy switch
         switch1 = self.addSwitch('s1')
@@ -105,7 +105,7 @@ def runTopo(controller_ip):
   
   print("*** Start DHCP server on h3 ...")
   #host3.cmd('sudo apt-get update')
-  #host3.cmd('echo "interfaces=\\"h3-eth0\\"" > /etc/default/isc-dhcp-server')
+  host3.cmd('echo "interfaces=\\"h3-eth0\\"" > /etc/default/isc-dhcp-server')
 
   dhcp_config = """subnet 10.0.0.0 netmask 255.255.255.0 {
     interface h3-eth0;
@@ -122,6 +122,21 @@ def runTopo(controller_ip):
   #klient dhcp na h4
   host4.cmd("ifconfig h4-eth0 0")
   #host4.cmd("dhclient h4-eth0")
+  
+
+  #konfiguracja dhcp na h5 atakujacym
+ dhcp_config1 = """subnet 10.0.0.0 netmask 255.255.255.0 {
+    interface h5-eth0;
+    range 10.0.0.150 10.0.0.200;
+    option subnet-mask 255.255.255.0;
+    default-lease-time 6200;
+    max-lease-time 70000;
+}"""
+
+  host5.cmd('echo "%s" > /etc/dhcp/dhcpd.conf' % dhcp_config1)
+  host3.cmd('echo "interfaces=\\"h5-eth0\\"" > /etc/default/isc-dhcp-server')
+
+  #host5.cmd("service isc-dhcp-server restart &")
   
   CLI(net)
   net.stop()
