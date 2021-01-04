@@ -43,9 +43,9 @@ Opcja B: Wraz z narzedziem do wizualizacji miniNAM:
 sudo python MiniNAM.py --custom example-topo.py --mac --topo mytopo --controller remote
 ```
 
-<!!!> Wazne:
+### Wazne
 
-Learning zabiera duzo czasu - przyklad:
+* Learning zabiera duzo czasu - przyklad:
 ```
 mininet> h1 ping h2
 PING 10.0.0.2 (10.0.0.2) 56(84) bytes of data.
