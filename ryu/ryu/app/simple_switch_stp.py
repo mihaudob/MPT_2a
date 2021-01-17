@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import struct
+import time
 
 from ryu.base import app_manager
 from ryu.controller.handler import MAIN_DISPATCHER
@@ -22,11 +23,21 @@ from ryu.ofproto import ofproto_v1_0
 from ryu.lib import dpid as dpid_lib
 from ryu.lib import stplib
 from ryu.lib.mac import haddr_to_str
+from ryu.lib.packet import packet
+from ryu.lib.packet import dhcp
+from ryu.lib.packet import ethernet
+from ryu.lib.packet import ipv4
+from datetime import timedelta
+from datetime import time
 
+DHCP_COUNTER = 0
+DHCP_LIMIT = 5
+DHCP_INTERVAL = timedelta(seconds=5)
 
 class SimpleSwitchStp(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
     _CONTEXTS = {'stplib': stplib.Stp}
+    
 
     def __init__(self, *args, **kwargs):
         super(SimpleSwitchStp, self).__init__(*args, **kwargs)
@@ -80,6 +91,9 @@ class SimpleSwitchStp(app_manager.RyuApp):
     def packet_in_handler(self, ev):
         msg = ev.msg
         datapath = msg.datapath
+        port = msg.match['in_port']
+        pkt = packet.Packet(data=msg.data)
+
         ofproto = datapath.ofproto
 
         dst, src, _eth_type = struct.unpack_from('!6s6sH', buffer(msg.data), 0)
@@ -109,6 +123,53 @@ class SimpleSwitchStp(app_manager.RyuApp):
             datapath=datapath, buffer_id=msg.buffer_id, in_port=msg.in_port,
             actions=actions)
         datapath.send_msg(out)
+
+        pkt_dhcp = pkt.get_protocols(dhcp.dhcp)
+        if not pkt_dhcp:
+            return
+        else:
+            self._handle_dhcp(datapath, port, pkt)
+        return
+
+    def get_state(self, pkt_dhcp):
+        dhcp_state = ord(
+            [opt for opt in pkt_dhcp.options.option_list if opt.tag == 53][0].value)
+        if dhcp_state == 1:
+            state = 'DHCPDISCOVER'
+        elif dhcp_state == 2:
+            state = 'DHCPOFFER'
+        elif dhcp_state == 3:
+            state = 'DHCPREQUEST'
+        elif dhcp_state == 5:
+            state = 'DHCPACK'
+        return state
+
+    def _handle_dhcp(self, datapath, port, pkt):
+        global DHCP_COUNTER
+        global DHCP_LIMIT
+        global DHCP_INTERVAL
+
+        pkt_dhcp = pkt.get_protocols(dhcp.dhcp)[0]
+        dhcp_state = self.get_state(pkt_dhcp)
+        self.logger.info("NEW DHCP %s PACKET RECEIVED: %s" %
+                         (dhcp_state, pkt_dhcp))
+        if dhcp_state == 'DHCPDISCOVER':
+            # self._send_packet(datapath, port, self.assemble_offer(pkt))
+            pass
+        elif dhcp_state == 'DHCPREQUEST':
+            DHCP_COUNTER += 1
+            if DHCP_COUNTER == 1:
+                first_dhcp = time.time()
+            elif DHCP_COUNTER == DHCP_LIMIT:
+                last_dhcp = time.time()
+                if first_dhcp - last_dhcp < DHCP_INTERVAL:
+                    pass
+                # shutdown port
+            else:
+                pass
+            # self._send_packet(datapath, port, self.assemble_ack(pkt))
+        else:
+            return
 
     @set_ev_cls(stplib.EventTopologyChange, MAIN_DISPATCHER)
     def _topology_change_handler(self, ev):
