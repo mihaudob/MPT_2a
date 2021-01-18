@@ -33,6 +33,7 @@ from datetime import time
 DHCP_COUNTER = 0
 DHCP_LIMIT = 5
 DHCP_INTERVAL = timedelta(seconds=5)
+drop_checker = {}
 
 class SimpleSwitchStp(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_0.OFP_VERSION]
@@ -119,6 +120,9 @@ class SimpleSwitchStp(app_manager.RyuApp):
         if out_port != ofproto.OFPP_FLOOD:
             self.add_flow(datapath, msg.in_port, dst, actions)
 
+        if drop_checker[port] == True:
+            self.delete_flow(datapath)
+
         out = datapath.ofproto_parser.OFPPacketOut(
             datapath=datapath, buffer_id=msg.buffer_id, in_port=msg.in_port,
             actions=actions)
@@ -128,6 +132,7 @@ class SimpleSwitchStp(app_manager.RyuApp):
         if not pkt_dhcp:
             return
         else:
+            drop_checker[port] = False
             self._handle_dhcp(datapath, port, pkt)
         return
 
@@ -153,21 +158,17 @@ class SimpleSwitchStp(app_manager.RyuApp):
         dhcp_state = self.get_state(pkt_dhcp)
         self.logger.info("NEW DHCP %s PACKET RECEIVED: %s" %
                          (dhcp_state, pkt_dhcp))
-        if dhcp_state == 'DHCPDISCOVER':
-            # self._send_packet(datapath, port, self.assemble_offer(pkt))
-            pass
-        elif dhcp_state == 'DHCPREQUEST':
+        if dhcp_state == 'DHCPREQUEST':
             DHCP_COUNTER += 1
             if DHCP_COUNTER == 1:
                 first_dhcp = time.time()
             elif DHCP_COUNTER == DHCP_LIMIT:
                 last_dhcp = time.time()
-                if first_dhcp - last_dhcp < DHCP_INTERVAL:
+                if last_dhcp - first_dhcp < DHCP_INTERVAL:
                     self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
-                # shutdown port
+                    drop_checker[port] = True
             else:
                 pass
-            # self._send_packet(datapath, port, self.assemble_ack(pkt))
         else:
             return
 
