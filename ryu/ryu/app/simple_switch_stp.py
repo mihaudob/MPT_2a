@@ -163,7 +163,7 @@ class SimpleSwitchStp(app_manager.RyuApp):
             elif DHCP_COUNTER == DHCP_LIMIT:
                 last_dhcp = time.time()
                 if first_dhcp - last_dhcp < DHCP_INTERVAL:
-                    pass
+                    self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
                 # shutdown port
             else:
                 pass
