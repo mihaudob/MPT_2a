@@ -29,7 +29,7 @@ import time
 
 DHCP_COUNTER = 0
 DHCP_LIMIT = 3
-DHCP_INTERVAL = timedelta(seconds=10)
+DHCP_INTERVAL = timedelta(seconds=60).total_seconds()
 drop_checker = {}
 
 class SimpleSwitch13(app_manager.RyuApp):
@@ -109,6 +109,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         actions = [parser.OFPActionOutput(out_port)]
 
+        drop_checker[in_port] = False
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
@@ -119,6 +120,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 return
             else:
                 self.add_flow(datapath, 1, match, actions)
+                
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
@@ -131,19 +133,21 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         if not pkt_dhcp:
             self.logger.info("It's not DHCP")
-#            drop_checker[in_port] = False
-            return
+            #drop_checker[in_port] = False
+            #return
         else:
             self.logger.info("It's DHCP")
-            drop_checker[in_port] = False
-            self._handle_dhcp(datapath, in_port, pkt)
+            #drop_checker[in_port] = False
+            self._handle_dhcp(datapath, in_port, pkt, drop_checker)
 
+        self.logger.info("DROP_CHECKER: %s", drop_checker)
         if drop_checker[in_port] == True:
-            self.logger.info("DROP_CHECKER == True")
+            #self.logger.info("DROP_CHECKER == True")
             self.delete_flow(datapath)
-        else:
-            self.logger.info("DROP_CHECKER == False")
-        return
+        else: 
+            pass
+            #self.logger.info("DROP_CHECKER == False")
+        #return
 
     def get_state(self, pkt_dhcp):
         dhcp_state = ord(
@@ -160,24 +164,34 @@ class SimpleSwitch13(app_manager.RyuApp):
             state = 'DHCPREQUEST'
         return state
 
-    def _handle_dhcp(self, datapath, port, pkt):
+    def _handle_dhcp(self, datapath, port, pkt, drop_checker):
         global DHCP_COUNTER
         global DHCP_LIMIT
         global DHCP_INTERVAL
+        global first_dhcp
 
         pkt_dhcp = pkt.get_protocols(dhcp.dhcp)[0]
         dhcp_state = self.get_state(pkt_dhcp)
-        self.logger.info("NEW DHCP %s PACKET RECEIVED. ")#%s" %
+        self.logger.info("NEW DHCP %s PACKET RECEIVED.", dhcp_state)#%s" %
                         # (dhcp_state, pkt_dhcp))
-        if dhcp_state == 'DHCPREQUEST':
-            DHCP_COUNTER += 1
-            if DHCP_COUNTER == 1:
+        if dhcp_state == 'DHCPDISCOVER': #DHCPREQUEST
+            if DHCP_COUNTER == 0:
                 first_dhcp = time.time()
-            elif DHCP_COUNTER == DHCP_LIMIT:
+                self.logger.info("Time of first registered: %s",first_dhcp)
+            DHCP_COUNTER += 1
+            self.logger.info("State of the DHCP Counter: %s",DHCP_COUNTER)
+            if DHCP_COUNTER == DHCP_LIMIT:
                 last_dhcp = time.time()
+                self.logger.info("Time of %s registered: %s",DHCP_LIMIT,last_dhcp)
+                self.logger.info("Time between the first and last: %s, the restrictions: %s", (last_dhcp - first_dhcp), DHCP_INTERVAL)
                 if last_dhcp - first_dhcp < DHCP_INTERVAL:
                     self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
                     drop_checker[port] = True
+                    
+                    return drop_checker
+                else:
+                    DHCP_COUNTER = 0
+                    return drop_checker
             else:
                 pass
         else:
