@@ -25,10 +25,11 @@ from ryu.lib.packet import dhcp
 from ryu.lib.packet import ipv4
 from datetime import timedelta
 from datetime import time
+import time
 
 DHCP_COUNTER = 0
-DHCP_LIMIT = 5
-DHCP_INTERVAL = timedelta(seconds=5)
+DHCP_LIMIT = 3
+DHCP_INTERVAL = timedelta(seconds=10)
 drop_checker = {}
 
 class SimpleSwitch13(app_manager.RyuApp):
@@ -126,9 +127,14 @@ class SimpleSwitch13(app_manager.RyuApp):
                                   in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
         pkt_dhcp = pkt.get_protocols(dhcp.dhcp)
+        #self.logger.info("------",str(pkt_dhcp))
+
         if not pkt_dhcp:
-            pass
+            self.logger.info("It's not DHCP")
+#            drop_checker[in_port] = False
+            return
         else:
+            self.logger.info("It's DHCP")
             drop_checker[in_port] = False
             self._handle_dhcp(datapath, in_port, pkt)
 
@@ -137,6 +143,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             self.delete_flow(datapath)
         else:
             self.logger.info("DROP_CHECKER == False")
+        return
 
     def get_state(self, pkt_dhcp):
         dhcp_state = ord(
@@ -149,6 +156,8 @@ class SimpleSwitch13(app_manager.RyuApp):
             state = 'DHCPREQUEST'
         elif dhcp_state == 5:
             state = 'DHCPACK'
+        else:
+            state = 'DHCPREQUEST'
         return state
 
     def _handle_dhcp(self, datapath, port, pkt):
