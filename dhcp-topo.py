@@ -22,6 +22,8 @@ class MyTopo( Topo):
         
         #deklaracja 4 hostów
         host1 = self.addHost('h1') #source of traffic 1
+        host1 = self.addHost('h1',ip='10.0.0.1', inNamespace=False) #hacker
+
         host2 = self.addHost('h2') #source of traffic 2
 
         host3 = self.addHost('h3',ip='10.0.0.50', inNamespace=False) #DHCP Server
