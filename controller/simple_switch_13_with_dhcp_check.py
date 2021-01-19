@@ -18,6 +18,8 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
+from ryu.lib import dpid as dpid_lib
+from ryu.lib import stplib
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
 from ryu.lib.packet import ether_types
@@ -70,6 +72,18 @@ class SimpleSwitch13(app_manager.RyuApp):
         else:
             mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
                                     match=match, instructions=inst)
+        datapath.send_msg(mod)
+
+    def delete_flow(self, datapath, in_port):
+        ofproto = datapath.ofproto
+        parser = datapath.ofproto_parser
+
+        #for dst in self.mac_to_port[datapath.id].keys():
+        match = parser.OFPMatch(in_port=in_port)
+        mod = parser.OFPFlowMod(
+            datapath, command=ofproto.OFPFC_DELETE,
+            out_port=ofproto.OFPP_ANY, out_group=ofproto.OFPG_ANY,
+            priority=1, match=match)
         datapath.send_msg(mod)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -129,7 +143,6 @@ class SimpleSwitch13(app_manager.RyuApp):
                                   in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
         pkt_dhcp = pkt.get_protocols(dhcp.dhcp)
-        #self.logger.info("------",str(pkt_dhcp))
 
         if not pkt_dhcp:
             self.logger.info("It's not DHCP")
@@ -143,7 +156,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.logger.info("DROP_CHECKER: %s", drop_checker)
         if drop_checker[in_port] == True:
             #self.logger.info("DROP_CHECKER == True")
-            self.delete_flow(datapath)
+            self.delete_flow(datapath, in_port)
         else: 
             pass
             #self.logger.info("DROP_CHECKER == False")
@@ -174,7 +187,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         dhcp_state = self.get_state(pkt_dhcp)
         self.logger.info("NEW DHCP %s PACKET RECEIVED.", dhcp_state)#%s" %
                         # (dhcp_state, pkt_dhcp))
-        if dhcp_state == 'DHCPDISCOVER': #DHCPREQUEST
+        if dhcp_state == 'DHCPDISCOVER' or dhcp_state == 'DHCPREQUEST':  #DHCPREQUEST
             if DHCP_COUNTER == 0:
                 first_dhcp = time.time()
                 self.logger.info("Time of first registered: %s",first_dhcp)
