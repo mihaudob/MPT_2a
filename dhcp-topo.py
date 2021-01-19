@@ -84,16 +84,16 @@ class MyTopo( Topo):
         self.addLink(switch4, switch44)
 '''
 
-def runTopo(controller_ip):
+def runTopo():
 
   topo = MyTopo()
 
   net = Mininet(
     topo=topo,
-    controller=DefaultController, #lambda name: RemoteController( name, ip=controller_ip ),
-        switch=OVSSwitch)
-        #autoSetMacs=True )
-
+    controller=RemoteController, 
+#    ip="127.0.0.1",
+    switch=OVSSwitch,
+    )
 
   net.start()
   time.sleep(1)
@@ -130,6 +130,6 @@ if __name__ == '__main__':
     # This runs if this file is executed directly
     setLogLevel( 'info' )
     #logging.info("Controller IP {}".format(sys.argv[1]))
-    runTopo(sys.argv[1])
+    runTopo()
            
 topos = { 'mytopo': (   lambda: MyTopo()   ) }
