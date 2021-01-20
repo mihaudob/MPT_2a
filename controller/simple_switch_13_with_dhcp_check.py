@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from ryu.base import app_manager
+from ryu.topology import event
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER
 from ryu.controller.handler import set_ev_cls
@@ -90,6 +91,7 @@ class SimpleSwitch13(app_manager.RyuApp):
     def _packet_in_handler(self, ev):
         # If you hit this you might want to increase
         # the "miss_send_length" of your switch
+
         if ev.msg.msg_len < ev.msg.total_len:
             self.logger.debug("packet truncated: only %s of %s bytes",
                               ev.msg.msg_len, ev.msg.total_len)
@@ -98,6 +100,11 @@ class SimpleSwitch13(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
+        try:
+            drop_checker[in_port]
+        except KeyError:
+            drop_checker[in_port] = False
+
 
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
@@ -113,6 +120,20 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
+        ### Zanim zaczniemy zarzadzenie
+        pkt_dhcp = pkt.get_protocols(dhcp.dhcp)
+
+        if pkt_dhcp:
+            self.logger.info("It's DHCP")
+            self._handle_dhcp(datapath, in_port, pkt, drop_checker)
+
+        self.logger.info("DROP_CHECKER: %s", drop_checker)
+
+        if drop_checker[in_port] == True:
+            self.logger.info("<!!!> PODEJMUJE AKCJE <!!!>")
+            return # powinno przesta procesowac wszystko z tego postu
+
+        self.logger.info("\n AKCJA PO AKCJI \n")
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
 
@@ -121,9 +142,11 @@ class SimpleSwitch13(app_manager.RyuApp):
         else:
             out_port = ofproto.OFPP_FLOOD
 
+        # learn a mac address to avoid FLOOD next time.
+        self.mac_to_port[dpid][src] = in_port
+
         actions = [parser.OFPActionOutput(out_port)]
 
-        drop_checker[in_port] = False
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
@@ -142,25 +165,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
                                   in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
-        pkt_dhcp = pkt.get_protocols(dhcp.dhcp)
-
-        if not pkt_dhcp:
-            self.logger.info("It's not DHCP")
-            #drop_checker[in_port] = False
-            #return
-        else:
-            self.logger.info("It's DHCP")
-            #drop_checker[in_port] = False
-            self._handle_dhcp(datapath, in_port, pkt, drop_checker)
-
-        self.logger.info("DROP_CHECKER: %s", drop_checker)
-        if drop_checker[in_port] == True:
-            #self.logger.info("DROP_CHECKER == True")
-            self.delete_flow(datapath, in_port)
-        else: 
-            pass
-            #self.logger.info("DROP_CHECKER == False")
-        #return
 
     def get_state(self, pkt_dhcp):
         dhcp_state = ord(
@@ -176,6 +180,13 @@ class SimpleSwitch13(app_manager.RyuApp):
         else:
             state = 'DHCPREQUEST'
         return state
+
+    def port(self, datapath):
+        ofp_parser = datapath.ofproto_parser
+
+        req = ofp_parser.OFPGetConfigRequest(datapath)
+        config = datapath.send_msg(req)
+        return config
 
     def _handle_dhcp(self, datapath, port, pkt, drop_checker):
         global DHCP_COUNTER
@@ -199,8 +210,10 @@ class SimpleSwitch13(app_manager.RyuApp):
                 self.logger.info("Time between the first and last: %s, the restrictions: %s", (last_dhcp - first_dhcp), DHCP_INTERVAL)
                 if last_dhcp - first_dhcp < DHCP_INTERVAL:
                     self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
-                    drop_checker[port] = True
                     
+                    drop_checker[port] = True
+                    DHCP_COUNTER = 0
+
                     return drop_checker
                 else:
                     DHCP_COUNTER = 0
@@ -209,3 +222,51 @@ class SimpleSwitch13(app_manager.RyuApp):
                 pass
         else:
             return
+
+
+class Port(object):
+    # This is data class passed by EventPortXXX
+    def __init__(self, dpid, ofproto, ofpport):
+        super(Port, self).__init__()
+
+        self.dpid = dpid
+        self._ofproto = ofproto
+        self._config = ofpport.config
+        self._state = ofpport.state
+
+        self.port_no = ofpport.port_no
+        self.hw_addr = ofpport.hw_addr
+        self.name = ofpport.name
+
+    def is_reserved(self):
+        return self.port_no > self._ofproto.OFPP_MAX
+
+    def is_down(self):
+        return (self._state & self._ofproto.OFPPS_LINK_DOWN) > 0 \
+            or (self._config & self._ofproto.OFPPC_PORT_DOWN) > 0
+
+    def is_live(self):
+        # NOTE: OF1.2 has OFPPS_LIVE state
+        #       return (self._state & self._ofproto.OFPPS_LIVE) > 0
+        return not self.is_down()
+
+    def to_dict(self):
+        return {'dpid': dpid_to_str(self.dpid),
+                'port_no': port_no_to_str(self.port_no),
+                'hw_addr': self.hw_addr,
+                'name': self.name.decode('utf-8')}
+
+    # for Switch.del_port()
+    def __eq__(self, other):
+        return self.dpid == other.dpid and self.port_no == other.port_no
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.dpid, self.port_no))
+
+    def __str__(self):
+        LIVE_MSG = {False: 'DOWN', True: 'LIVE'}
+        return 'Port<dpid=%s, port_no=%s, %s>' % \
+            (self.dpid, self.port_no, LIVE_MSG[self.is_live()])
