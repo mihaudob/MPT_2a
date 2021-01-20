@@ -137,16 +137,13 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.logger.info("Packet forwarding")
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
+        if drop_checker[in_port] == False:
+            if dst in self.mac_to_port[dpid]:
+                out_port = self.mac_to_port[dpid][dst]
+            else:
+                out_port = ofproto.OFPP_FLOOD
 
-        if dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][dst]
-        else:
-            out_port = ofproto.OFPP_FLOOD
-
-        # learn a mac address to avoid FLOOD next time.
-        self.mac_to_port[dpid][src] = in_port
-
-        actions = [parser.OFPActionOutput(out_port)]
+            actions = [parser.OFPActionOutput(out_port)]
 
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
@@ -162,10 +159,10 @@ class SimpleSwitch13(app_manager.RyuApp):
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
-
-        out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
+        if drop_checker[in_port] == False:
+            out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
                                   in_port=in_port, actions=actions, data=data)
-        datapath.send_msg(out)
+            datapath.send_msg(out)
 
     def get_state(self, pkt_dhcp):
         dhcp_state = ord(
