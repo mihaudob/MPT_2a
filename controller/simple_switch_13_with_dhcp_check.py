@@ -131,9 +131,10 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         if drop_checker[in_port] == True:
             self.logger.info("<!!!> PODEJMUJE AKCJE <!!!>")
+            self.delete_flow(datapath, in_port)
             return # powinno przesta procesowac wszystko z tego postu
-
-        self.logger.info("\n AKCJA PO AKCJI \n")
+        
+        self.logger.info("Packet forwarding")
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
 
@@ -181,12 +182,6 @@ class SimpleSwitch13(app_manager.RyuApp):
             state = 'DHCPREQUEST'
         return state
 
-    def port(self, datapath):
-        ofp_parser = datapath.ofproto_parser
-
-        req = ofp_parser.OFPGetConfigRequest(datapath)
-        config = datapath.send_msg(req)
-        return config
 
     def _handle_dhcp(self, datapath, port, pkt, drop_checker):
         global DHCP_COUNTER
@@ -211,62 +206,17 @@ class SimpleSwitch13(app_manager.RyuApp):
                 if last_dhcp - first_dhcp < DHCP_INTERVAL:
                     self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
                     
-                    drop_checker[port] = True
+                    for key, value in drop_checker.items():
+                        drop_checker[key] = True
+                    #drop_checker[port] = True
                     DHCP_COUNTER = 0
 
                     return drop_checker
                 else:
                     DHCP_COUNTER = 0
+
                     return drop_checker
             else:
                 pass
         else:
             return
-
-
-class Port(object):
-    # This is data class passed by EventPortXXX
-    def __init__(self, dpid, ofproto, ofpport):
-        super(Port, self).__init__()
-
-        self.dpid = dpid
-        self._ofproto = ofproto
-        self._config = ofpport.config
-        self._state = ofpport.state
-
-        self.port_no = ofpport.port_no
-        self.hw_addr = ofpport.hw_addr
-        self.name = ofpport.name
-
-    def is_reserved(self):
-        return self.port_no > self._ofproto.OFPP_MAX
-
-    def is_down(self):
-        return (self._state & self._ofproto.OFPPS_LINK_DOWN) > 0 \
-            or (self._config & self._ofproto.OFPPC_PORT_DOWN) > 0
-
-    def is_live(self):
-        # NOTE: OF1.2 has OFPPS_LIVE state
-        #       return (self._state & self._ofproto.OFPPS_LIVE) > 0
-        return not self.is_down()
-
-    def to_dict(self):
-        return {'dpid': dpid_to_str(self.dpid),
-                'port_no': port_no_to_str(self.port_no),
-                'hw_addr': self.hw_addr,
-                'name': self.name.decode('utf-8')}
-
-    # for Switch.del_port()
-    def __eq__(self, other):
-        return self.dpid == other.dpid and self.port_no == other.port_no
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __hash__(self):
-        return hash((self.dpid, self.port_no))
-
-    def __str__(self):
-        LIVE_MSG = {False: 'DOWN', True: 'LIVE'}
-        return 'Port<dpid=%s, port_no=%s, %s>' % \
-            (self.dpid, self.port_no, LIVE_MSG[self.is_live()])
