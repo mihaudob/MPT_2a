@@ -42,17 +42,24 @@ Opcja B: Wraz z narzedziem do wizualizacji miniNAM:
 ```
 sudo python MiniNAM.py --custom example-topo.py --mac --topo mytopo --controller remote
 ```
-## Ostateczna Opcja
+
+Opcja C:
 
 Z Rest:
 ```
-ryu-manager /home/mdobieck/University/MPT_2a/controller/simple_swit_13_with_dhcp_check.py ryu.app.ofctl_rest
+ryu-manager simple_switch_13_with_dhcp_check.py ryu.app.ofctl_rest
 ```
 
 Z mininam:
 ```
 sudo python MiniNAM.py --custom dhcp-topo.py --topo mytopo
 ```
+## Usuwanie
+```
+mn -c
+killall controller
+```
+
 ### Wazne
 
 * Learning zabiera duzo czasu - przyklad:
