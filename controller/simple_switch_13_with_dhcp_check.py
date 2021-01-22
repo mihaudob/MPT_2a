@@ -203,9 +203,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 if last_dhcp - first_dhcp < DHCP_INTERVAL:
                     self.logger.info("DHCP STARVATION ATTACK DISCOVERED ON PORT: %s", port)
                     
-                    for key, value in drop_checker.items():
-                        drop_checker[key] = True
-                    #drop_checker[port] = True
+                    drop_checker[port] = True
                     DHCP_COUNTER = 0
 
                     return drop_checker
